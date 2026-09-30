@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Catálogo de Productos</title>
+  <!-- Tailwind CSS por CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+  <!-- Navegación -->
+  <nav class="bg-indigo-700 text-white shadow-md p-4 mb-6">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Catálogo Cloud Dashboard</h1>
+      <div class="space-x-4">
+        <button onclick="showSection('catalogo')" class="hover:underline font-semibold">Catálogo</button>
+        <button onclick="showSection('registro')" class="bg-white text-indigo-700 px-4 py-2 rounded-md font-semibold hover:bg-gray-100">Registrar Producto</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto p-4">
+
+    <!-- MENSAJES DE ALERTA GLOBAL -->
+    <div id="alertBox" class="hidden mb-4 p-4 rounded-md font-semibold"></div>
+
+    <!-- VISTA 1: CATÁLOGO DE PRODUCTOS -->
+    <section id="sec-catalogo">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Productos Publicados</h2>
+        <button onclick="cargarCatalogo()" class="bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 text-sm">Actualizar</button>
+      </div>
+      <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Tarjetas cargadas dinámicamente -->
+      </div>
+    </section>
+
+    <!-- VISTA 2: FORMULARIO DE REGISTRO DE PRODUCTO -->
+    <section id="sec-registro" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-2xl font-bold mb-4 text-gray-700">Registrar Nuevo Producto</h2>
+      
+      <form id="form-producto" onsubmit="handleRegistro(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-medium text-sm">Código (ID):</label>
+            <input type="text" id="p_codigo" required class="w-full border p-2 rounded mt-1" placeholder="Ej: PROD020">
+          </div>
+          <div>
+            <label class="block font-medium text-sm">Categoría:</label>
+            <select id="p_categoria" required class="w-full border p-2 rounded mt-1">
+              <option value="">Cargando categorías...</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium text-sm">Nombre del Producto:</label>
+          <input type="text" id="p_nombre" required class="w-full border p-2 rounded mt-1">
+        </div>
+
+        <div>
+          <label class="block font-medium text-sm">Descripción:</label>
+          <textarea id="p_descripcion" rows="2" class="w-full border p-2 rounded mt-1"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-medium text-sm">Precio (Bs.):</label>
+          <input type="number" step="0.01" id="p_precio" required class="w-full border p-2 rounded mt-1">
+        </div>
+
+        <!-- Atributos Dinámicos (Key-Value) -->
+        <div>
+          <label class="block font-medium text-sm mb-1">Atributos Dinámicos (DynamoDB):</label>
+          <div id="contenedor-atributos" class="space-y-2">
+            <div class="flex space-x-2 attr-row">
+              <input type="text" placeholder="Clave (Ej: ram)" class="border p-2 rounded w-1/2 attr-key">
+              <input type="text" placeholder="Valor (Ej: 16GB)" class="border p-2 rounded w-1/2 attr-value">
+            </div>
+          </div>
+          <button type="button" onclick="agregarCampoAtributo()" class="mt-2 text-sm text-indigo-600 font-semibold hover:underline">+ Agregar Atributo</button>
+        </div>
+
+        <!-- Carga de Imagen -->
+        <div>
+          <label class="block font-medium text-sm">Fotografía (JPEG/PNG, Máx 5MB):</label>
+          <input type="file" id="p_imagen" accept="image/jpeg, image/png" required class="w-full border p-2 rounded mt-1">
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end space-x-2 pt-4">
+          <button type="button" onclick="showSection('catalogo')" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">Cancelar</button>
+          <button type="submit" id="btn-guardar" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-semibold">Guardar y Publicar</button>
+        </div>
+      </form>
+
+      <!-- Panel de Reintento (Reprocesar) en caso de fallo parcial -->
+      <div id="panel-reintento" class="hidden mt-6 p-4 bg-amber-50 border border-amber-300 rounded-md">
+        <p class="text-amber-800 font-medium mb-2" id="txt-reintento-msg"></p>
+        <button id="btn-reintentar" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 font-semibold">Reintentar Procesamiento de Imagen</button>
+      </div>
+    </section>
+
+    <!-- VISTA 3: MODAL DETALLE DE PRODUCTO -->
+    <div id="modal-detalle" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg max-w-lg w-full p-6 shadow-xl relative">
+        <button onclick="cerrarModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
+        <div id="detalle-contenido">
+          <!-- Detalle inyectado dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
